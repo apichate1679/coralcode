@@ -132,8 +132,8 @@ sensor = GY906(address,bus,units)
 buzzer = Buzzer(17)
 
 def create_log(frame, temp, mask, server_url, token):
-    _, byte_io = cv2.imencode(".JPEG", frame)
-    files = {"image": byte_io}
+    # _, byte_io = cv2.imencode(".JPEG", frame)
+    files = {"image": frame}
     headers = {"token": token}
     data = {"temp": temp, "mask": mask}
     return requests.post(server_url + "/hardware/scan-log", files=files, data=data, headers=headers)
@@ -339,6 +339,7 @@ class Detector():
         temp = sensor.get_obj_temp()
 
         try:
+          print('[DEBUG] type of frame', type(frame))
           print('[DEBUG] create log variable', len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
           create_log(frame, len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
         except Exception as e:
