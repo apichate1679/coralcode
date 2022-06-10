@@ -187,6 +187,7 @@ class Detector():
       interpreter =  tflite.Interpreter(
           model_path=model_file)
     return interpreter
+
   def thread_function(self):
     GPIO.output(led_green,GPIO.HIGH)
     prev=time.time()
@@ -259,14 +260,17 @@ class Detector():
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
                 x=Thread(target=self.thread_function)
                 x.start()   
-
-              try:
-                print('[DEBUG] type of frame', type(frame))
-                print('[DEBUG] create log variable', "true" if label == self.mask_labels[0] else "false", temp, self.server_url, self.hardware_token)
-                res = create_log(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
-                print('[DEBUG] create log response', res)
-              except Exception as e:
-                print('[DEBUG] create log error', e)       
+                
+              send_image_thread = SendImageThread(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
+              x=Thread(target=send_image_thread.send_image)
+              x.start()   
+              # try:
+              #   print('[DEBUG] type of frame', type(frame))
+              #   print('[DEBUG] create log variable', "true" if label == self.mask_labels[0] else "false", temp, self.server_url, self.hardware_token)
+              #   res = create_log(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
+              #   print('[DEBUG] create log response', res)
+              # except Exception as e:
+              #   print('[DEBUG] create log error', e)       
             #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
           #cv2.putText(frame,
            #       '{} {:.1%}'.format(label, y_pred),
@@ -348,14 +352,6 @@ class Detector():
           t1 = time.clock()
 
           self.draw_objects(frame.copy(), objs, y_mask_pred, (1/(t1-t0)))
-          # temp = sensor.get_obj_temp()
-          # try:
-          #   print('[DEBUG] type of frame', type(frame))
-          #   print('[DEBUG] create log variable', "true" if len(objs) != 0 else "false", temp, self.server_url, self.hardware_token)
-          #   res = create_log(frame.copy(), temp, "true" if len(objs) != 0 else "false", self.server_url, self.hardware_token)
-          #   print('[DEBUG] create log response', res)
-          # except Exception as e:
-          #   print('[DEBUG] create log error', e)
 
 
       cv2.imshow('Camera', frame)
@@ -423,3 +419,20 @@ class Detector_Thread(Thread, Detector):
   def get_frame(self):
     """Return a frame for the server"""
     return self.frame_bytes
+
+
+class SendImageThread():
+  def __init__(self, frame, temp, mask, server_url, token):
+    self.frame = frame
+    self.temp = temp
+    self.mask = mask
+    self.server_url = server_url
+    self.hardware_token = token
+  def send_image(self):
+    try:
+      print('[DEBUG] type of frame', type(frame))
+      print('[DEBUG] create log variable', self.mask, self.temp, self.server_url, self.hardware_token)
+      res = create_log(self.frame, self.temp, self.mask, self.server_url, self.hardware_token)
+      print('[DEBUG] create log response', res)
+    except Exception as e:
+      print('[DEBUG] create log error', e)    
