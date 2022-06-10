@@ -261,20 +261,16 @@ class Detector():
                 x=Thread(target=self.thread_function)
                 x.start()   
 
+              # send image to server when mask status is true 
               send_image_thread = SendImageThread(frame.copy(), temp,  "false", self.server_url, self.hardware_token)
               x=Thread(target=send_image_thread.send_image)
               x.start()  
             else:  
+              # send image to server when mask status is true 
               send_image_thread = SendImageThread(frame.copy(), temp, "true" , self.server_url, self.hardware_token)
               x=Thread(target=send_image_thread.send_image)
               x.start()  
-              # try:
-              #   print('[DEBUG] type of frame', type(frame))
-              #   print('[DEBUG] create log variable', "true" if label == self.mask_labels[0] else "false", temp, self.server_url, self.hardware_token)
-              #   res = create_log(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
-              #   print('[DEBUG] create log response', res)
-              # except Exception as e:
-              #   print('[DEBUG] create log error', e)       
+
             #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
           #cv2.putText(frame,
            #       '{} {:.1%}'.format(label, y_pred),
