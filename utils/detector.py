@@ -260,7 +260,7 @@ class Detector():
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
                 x=Thread(target=self.thread_function)
                 x.start()   
-                
+
               send_image_thread = SendImageThread(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
               x=Thread(target=send_image_thread.send_image)
               x.start()   
@@ -430,7 +430,7 @@ class SendImageThread():
     self.hardware_token = token
   def send_image(self):
     try:
-      print('[DEBUG] type of frame', type(frame))
+      print('[DEBUG] type of frame', type(self.frame))
       print('[DEBUG] create log variable', self.mask, self.temp, self.server_url, self.hardware_token)
       res = create_log(self.frame, self.temp, self.mask, self.server_url, self.hardware_token)
       print('[DEBUG] create log response', res)
