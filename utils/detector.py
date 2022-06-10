@@ -134,7 +134,7 @@ buzzer = Buzzer(17)
 def create_log(frame, temp, mask, server_url, token):
     status, byte_io = cv2.imencode(".JPEG", frame)
     print("[DEBUG] : convert narray to byte status", status)
-    files = {"image": byte_io}
+    files = {"image": byte_io.tobytes()}
     headers = {"token": token}
     data = {"temp": temp, "mask": mask}
     return requests.post(server_url + "/hardware/scan-log", files=files, data=data, headers=headers)
