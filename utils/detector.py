@@ -339,10 +339,11 @@ class Detector():
         temp = sensor.get_obj_temp()
 
         try:
+          print('[DEBUG] create log variable', len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
           create_log(frame, len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
-        except:
-          print('create log error')
-          
+        except Exception as e:
+          print('[DEBUG] create log error', e)
+
       cv2.imshow('Camera', frame)
 
 
