@@ -261,9 +261,13 @@ class Detector():
                 x=Thread(target=self.thread_function)
                 x.start()   
 
-              send_image_thread = SendImageThread(frame.copy(), temp, "true" if label == self.mask_labels[0] else "false", self.server_url, self.hardware_token)
+              send_image_thread = SendImageThread(frame.copy(), temp,  "false", self.server_url, self.hardware_token)
               x=Thread(target=send_image_thread.send_image)
-              x.start()   
+              x.start()  
+            else:  
+              send_image_thread = SendImageThread(frame.copy(), temp, "true" , self.server_url, self.hardware_token)
+              x=Thread(target=send_image_thread.send_image)
+              x.start()  
               # try:
               #   print('[DEBUG] type of frame', type(frame))
               #   print('[DEBUG] create log variable', "true" if label == self.mask_labels[0] else "false", temp, self.server_url, self.hardware_token)
