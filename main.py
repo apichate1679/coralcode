@@ -27,7 +27,7 @@ threshold_face = config['threshold_face']
 camera = config['camera']
 threshold_mask = config['threshold_mask']
 models_path = config['models_path']
-hardware_token = config['token']
+hardware_token = config['hardware_token']
 server_url = config['server_url']
 
 
