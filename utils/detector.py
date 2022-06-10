@@ -339,12 +339,12 @@ class Detector():
           t1 = time.clock()
 
           self.draw_objects(frame.copy(), objs, y_mask_pred, (1/(t1-t0)))
-        temp = sensor.get_obj_temp()
 
+        temp = sensor.get_obj_temp()
         try:
           print('[DEBUG] type of frame', type(frame))
-          print('[DEBUG] create log variable', len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
-          res = create_log(frame.copy(), len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
+          print('[DEBUG] create log variable', "true" if len(objs) != 0 else "false", temp, self.server_url, self.hardware_token)
+          res = create_log(frame.copy(), temp, "true" if len(objs) != 0 else "false", self.server_url, self.hardware_token)
           print('[DEBUG] create log response', res)
         except Exception as e:
           print('[DEBUG] create log error', e)
