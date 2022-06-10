@@ -23,6 +23,7 @@ from threading import Thread
 import os
 from datetime import datetime
 import threading
+import requests
 
 
 # import the necessary packages
@@ -130,14 +131,22 @@ sensor = GY906(address,bus,units)
 #sensor2 = GY906.GY906(address,bus2,units)
 buzzer = Buzzer(17)
 
-
+def create_log(frame, temp, mask, server_url, token):
+    _, byte_io = cv2.imencode(".JPEG", frame)
+    files = {"image": byte_io}
+    headers = {"token": token}
+    data = {"temp": temp, "mask": mask}
+    return requests.post(server_url + "/hardware/scan-log", files=files, data=data, headers=headers)
 
 
 class Detector():
   """Class for live camera detection"""
-  def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask):
+  def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask, hardware_token, server_url):
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
+    self.hardware_token = hardware_token
+    self.server_url = server_url
+
     # path FaceNet
     if self.cpu_face:
       self.MODEL_PATH_FACE = os.path.join(models_path, 'ssd_mobilenet_v2_face_quant_postprocess.tflite')
@@ -313,20 +322,27 @@ class Detector():
 
       # faces detection
       if GPIO.input(sensor_IR ) !=1:
-         print(GPIO.input(sensor_IR ))
-         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
-          # mask detection
-         if len(objs) != 0:
-            try:
-                color=(255,0,0)
-                y_mask_pred = detect_mask.predict(interpreter_mask, frame_rgb, objs)
+        print(GPIO.input(sensor_IR ))
+        objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
+        # mask detection
+        if len(objs) != 0:
+          try:
+              color=(255,0,0)
+              y_mask_pred = detect_mask.predict(interpreter_mask, frame_rgb, objs)
 
-            except:
-                y_mask_pred = []
+          except:
+              y_mask_pred = []
             
-            t1 = time.clock()
+          t1 = time.clock()
+
+          self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
+        temp = sensor.get_obj_temp()
+
+        try:
+          create_log(frame, len(objs) != 0 if "true" else "false", temp, self.server_url, self.hardware_token)
+        except:
+          print('create log error')
           
-            self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
       cv2.imshow('Camera', frame)
 
 

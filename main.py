@@ -27,8 +27,10 @@ threshold_face = config['threshold_face']
 camera = config['camera']
 threshold_mask = config['threshold_mask']
 models_path = config['models_path']
+hardware_token = config['token']
+server_url = config['server_url']
 
 
 if __name__ == '__main__':
-	detector = Detector(cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask)
+	detector = Detector(cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask, hardware_token, server_url)
 	detector.start()
