@@ -137,8 +137,10 @@ def create_log(frame, temp, mask, server_url, token):
     files = {"image": byte_io.tobytes()}
     headers = {"token": token}
     data = {"temp": temp, "mask": mask}
-    return requests.post(server_url + "/hardware/scan-log", files=files, data=data, headers=headers)
-
+    res = requests.post(server_url + "/hardware/scan-log", files=files, data=data, headers=headers)
+    if res.status_code != 200:
+      print("[DEBUG] response status not 200 response => ", res.text)
+    return res
 
 class Detector():
   """Class for live camera detection"""
