@@ -265,11 +265,6 @@ class Detector():
               send_image_thread = SendImageThread(frame.copy(), temp,  "false", self.server_url, self.hardware_token)
               x=Thread(target=send_image_thread.send_image)
               x.start()  
-            else:  
-              # send image to server when mask status is true 
-              send_image_thread = SendImageThread(frame.copy(), temp, "true" , self.server_url, self.hardware_token)
-              x=Thread(target=send_image_thread.send_image)
-              x.start()  
 
             #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
           #cv2.putText(frame,
