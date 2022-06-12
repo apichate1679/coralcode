@@ -27,6 +27,8 @@ threshold_face = config['threshold_face']
 camera = config['camera']
 threshold_mask = config['threshold_mask']
 models_path = config['models_path']
+server_url =config['server_url']
+token = config['token']
 
 
 if __name__ == '__main__':

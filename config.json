@@ -4,5 +4,7 @@
     "threshold_mask": 0.8,
     "cpu_face": false,
     "cpu_mask": false,
-    "models_path": "models"
+    "models_path": "models",
+    "server_url" : "https://tauhoo.dev/hardware/scan-log",
+    "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIxIiwidHlwZSI6IkhBUkRXQVJFIiwiaWF0IjoxNjU0OTU3MDUxfQ.aXO94bR0UZHJ7trD36A9m0IQZeQX_M5q3YsJiJtjGCM"
 }

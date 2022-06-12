@@ -23,7 +23,7 @@ from threading import Thread
 import os
 from datetime import datetime
 import threading
-
+import requests
 
 # import the necessary packages
 #-*-coding:utf8 -*-
@@ -135,7 +135,7 @@ buzzer = Buzzer(17)
 
 class Detector():
   """Class for live camera detection"""
-  def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask):
+  def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask ,server_url , token):
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
     # path FaceNet
@@ -154,6 +154,8 @@ class Detector():
     self.camera = camera
     self.threshold_mask = threshold_mask
     self.mask_labels = ['No Mask', 'Mask']
+    self.server_url = server_url
+    self.token = token
 
   def make_interpreter(self, model_file, cpu):
     """Create an interpreter delegating on the tpu or cpu"""
@@ -264,7 +266,22 @@ class Detector():
             #       3)
 
     cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+  def sendApi(self , image ,status_mask , temp):
+    payload={
+      'temp': str(temp),
+      'mask': str(status_mask)
+    }
+    files=[
+      ('image',(str(image),open(str(image),'rb'),'image/png'))
+    ]
+    headers = {
+      'token': str(self.token)
+    }
 
+    response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
+
+    # print(response.text)
+    return response.text
 
   def start(self):
     """Main loop function."""
@@ -313,21 +330,50 @@ class Detector():
 
       # faces detection
       if GPIO.input(sensor_IR ) !=1:
-         print(GPIO.input(sensor_IR ))
-         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
-          # mask detection
-         if len(objs) != 0:
-            try:
-                color=(255,0,0)
-                y_mask_pred = detect_mask.predict(interpreter_mask, frame_rgb, objs)
+        print(GPIO.input(sensor_IR ))
+        objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
+        # mask detection
+        if len(objs) > 0:
+          try:
+              color=(255,0,0)
+              y_mask_pred = detect_mask.predict(interpreter_mask, frame_rgb, objs)
 
-            except:
-                y_mask_pred = []
-            
-            t1 = time.clock()
+          except:
+              y_mask_pred = []
           
-            self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
+          t1 = time.clock()
+        
+          self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
+          cv2.imwrite("temp.png", frame)
+          response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+
+          while true:
+            if(str(response) == "OK"):
+              print("send api complete")
+              break
+            else:
+              response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+                      
+                
+        else:
+          cv2.imwrite("temp.png", frame)
+          response = self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR )))
+          while true:
+            if(str(response) == "OK"):
+              print("send api complete")
+              break
+            else:
+              response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+      # else:
+      #   cv2.imwrite("temp.png", frame)
+      #   self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR)))
+              
+        
+
       cv2.imshow('Camera', frame)
+      #save png to upload server 
+      
+
 
 
 
