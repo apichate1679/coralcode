@@ -271,6 +271,7 @@ class Detector():
       'temp': "{:.2f}".format(temp),
       'mask': "true" if status_mask else "false"
     }
+    print("[DEBUG] send api ", payload["temp"], payload["mask"])
     files=[
       ('image',(str(image),open(str(image),'rb'),'image/png'))
     ]
