@@ -349,26 +349,27 @@ class Detector():
           t1 = time.clock()
         
           self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
-          cv2.imwrite("temp.png", frame)
-          response = self.sendApi("temp.png" , True , temp)
+          if len(y_mask_pred) > 0:
+            cv2.imwrite("temp.png", frame)
+            response = self.sendApi("temp.png" , True , temp)
 
-          while True:
-            if(str(response) == "OK"):
-              print("send api complete")
-              break
-            else:
-              response = self.sendApi("temp.png" , True , temp)
-                      
-                
-        else:
-          cv2.imwrite("temp.png", frame)
-          response = self.sendApi("temp.png" , False , temp)
-          while True:
-            if(str(response) == "OK"):
-              print("send api complete")
-              break
-            else:
-              response = self.sendApi("temp.png" , True , temp)
+            while True:
+              if(str(response) == "OK"):
+                print("send api complete")
+                break
+              else:
+                response = self.sendApi("temp.png" , True , temp)
+                        
+                  
+          else:
+            cv2.imwrite("temp.png", frame)
+            response = self.sendApi("temp.png" , False , temp)
+            while True:
+              if(str(response) == "OK"):
+                print("send api complete")
+                break
+              else:
+                response = self.sendApi("temp.png" , False , temp)
       # else:
       #   cv2.imwrite("temp.png", frame)
       #   self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR)))
