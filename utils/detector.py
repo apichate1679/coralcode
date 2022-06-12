@@ -329,10 +329,13 @@ class Detector():
 
       frame_rgb = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2RGB)
 
+      temp = sensor.get_obj_temp()
+      if type(temp) == 'NoneType':
+        print("[DEBUG] temp from sensor is None")
       # faces detection
-      if GPIO.input(sensor_IR ) !=1:
+      elif GPIO.input(sensor_IR ) !=1:
         print(GPIO.input(sensor_IR ))
-        temp = sensor.get_obj_temp()+2
+
         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
         # mask detection
         if len(objs) > 0:
