@@ -269,7 +269,7 @@ class Detector():
   def sendApi(self , image ,status_mask , temp):
     payload={
       'temp': "{:.2f}".format(temp),
-      'mask': str(status_mask)
+      'mask': "true" if status_mask else "false"
     }
     files=[
       ('image',(str(image),open(str(image),'rb'),'image/png'))
