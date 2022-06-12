@@ -268,7 +268,7 @@ class Detector():
     cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
   def sendApi(self , image ,status_mask , temp):
     payload={
-      'temp': str(temp),
+      'temp': "{:.2f}".format(temp),
       'mask': str(status_mask)
     }
     files=[
@@ -331,7 +331,7 @@ class Detector():
       # faces detection
       if GPIO.input(sensor_IR ) !=1:
         print(GPIO.input(sensor_IR ))
-        temp = sensor.get_obj_temp()
+        temp = sensor.get_obj_temp()+2
         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
         # mask detection
         if len(objs) > 0:
