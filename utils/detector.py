@@ -346,7 +346,7 @@ class Detector():
         
           self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
           cv2.imwrite("temp.png", frame)
-          response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+          response = self.sendApi("temp.png" , True , temp)
 
           while True:
             if(str(response) == "OK"):
