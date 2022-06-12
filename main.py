@@ -32,5 +32,5 @@ token = config['token']
 
 
 if __name__ == '__main__':
-	detector = Detector(cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask)
+	detector = Detector(cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask, server_url, token)
 	detector.start()

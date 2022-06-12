@@ -331,6 +331,7 @@ class Detector():
       # faces detection
       if GPIO.input(sensor_IR ) !=1:
         print(GPIO.input(sensor_IR ))
+        temp = sensor.get_obj_temp()
         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
         # mask detection
         if len(objs) > 0:
@@ -347,23 +348,23 @@ class Detector():
           cv2.imwrite("temp.png", frame)
           response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
 
-          while true:
+          while True:
             if(str(response) == "OK"):
               print("send api complete")
               break
             else:
-              response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+              response = self.sendApi("temp.png" , True , temp)
                       
                 
         else:
           cv2.imwrite("temp.png", frame)
-          response = self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR )))
-          while true:
+          response = self.sendApi("temp.png" , False , temp)
+          while True:
             if(str(response) == "OK"):
               print("send api complete")
               break
             else:
-              response = self.sendApi("temp.png" , True , str(GPIO.input(sensor_IR )))
+              response = self.sendApi("temp.png" , True , temp)
       # else:
       #   cv2.imwrite("temp.png", frame)
       #   self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR)))
