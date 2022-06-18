@@ -45,6 +45,10 @@ from time import sleep
 import RPi.GPIO as GPIO
 from gpiozero import Servo
 import smbus2
+#check=0
+
+temps=0.0
+enable=False
 class GY906(object):
 
     MLX90614_RAWIR1=0x04
@@ -102,7 +106,9 @@ class GY906(object):
         if data != None:
             return self.data_to_temp(data)
         else:
+            
             return None
+          
 sensor_IR  = 16
 servo = Servo(25)
 
@@ -136,6 +142,7 @@ buzzer = Buzzer(17)
 class Detector():
   """Class for live camera detection"""
   def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask ,server_url , token):
+
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
     # path FaceNet
@@ -203,15 +210,15 @@ class Detector():
         # mask detection
         temp = sensor.get_obj_temp()
         
-        if temp is not None:
+        if temp is not None  :
             person_temp = "{0:0.1f}{1}".format(temp,units)
             if len(y_mask_pred) != 0:
               y_pred = y_mask_pred[i]
               label = self.mask_labels[y_pred > self.threshold_mask]
-
+              print(" label = " ,label, type(label))
               if label == self.mask_labels[0]:
                 color = (0,0,255) # b g r, red color if mask not detected
-
+                #enable = False
                 cv2.putText(frame, label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
@@ -227,12 +234,20 @@ class Detector():
 
                 cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
+                cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                cv2.imwrite("temp.png", frame)
+                #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
+               
+                response = self.sendApi2("temp.png"  , temp)
 
               else:
-                color = (0,255,0) # b g r, red color if mask not detected
-
+                if(temp < 37.5):  
+                    color = (0,255,0) # b g r, red color if mask not detected
+                else:
+                    color = (0,0,255)
+                #enable = True
                 cv2.putText(frame, label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
@@ -247,8 +262,25 @@ class Detector():
 
                 cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
+                cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+                cv2.imwrite("temp.png", frame)
+                #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function)
-                x.start()          #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
+                x.start()
+               
+                response = self.sendApi1("temp.png"  , temp)
+            '''    
+            if GPIO.input(sensor_IR ) !=1 :
+                print("!!!!")
+                if label == self.mask_labels[0]:
+                    print("  2222222222")
+                    response = self.sendApi2("temp.png"  , temp)
+                  
+                else:
+                    print("  11111111")
+                    response = self.sendApi1("temp.png"  , temp)
+            '''   
+                #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
           #cv2.putText(frame,
            #       '{} {:.1%}'.format(label, y_pred),
             #      (int(bbox.xmin + 5), int(bbox.ymin - 10)),
@@ -265,12 +297,18 @@ class Detector():
            #        color, 
             #       3)
 
-    cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-  def sendApi(self , image ,status_mask , temp):
+    #cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+    #cv2.imwrite("temp.png", frame)
+  #def sendApi(self , image ,status_mask , temp):
+  def sendApi1(self , image , temp ):
+   
     payload={
-      'temp': "{:.2f}".format(temp),
-      'mask': "true" if status_mask else "false"
+          'temp': "{:.2f}".format(temp),
+          'mask': "true" 
+        
     }
+ 
+        
     print("[DEBUG] send api ", payload["temp"], payload["mask"])
     files=[
       ('image',(str(image),open(str(image),'rb'),'image/png'))
@@ -284,6 +322,27 @@ class Detector():
     # print(response.text)
     return response.text
 
+  def sendApi2(self , image , temp ):
+   
+    payload={
+          'temp': "{:.2f}".format(temp),
+          'mask': "false" 
+        
+    }
+ 
+        
+    print("[DEBUG] send api ", payload["temp"], payload["mask"])
+    files=[
+      ('image',(str(image),open(str(image),'rb'),'image/png'))
+    ]
+    headers = {
+      'token': str(self.token)
+    }
+
+    response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
+
+    # print(response.text)
+    return response.text
   def start(self):
     """Main loop function."""
     # initialize coral accelerator
@@ -308,7 +367,7 @@ class Detector():
     while(True):
       # get opencv data
 
-      
+      #global check
       ret, frame = camera.read()
       cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, 0, 2)
       cv2.putText(frame, "Temp : ", (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, 0, 2)
@@ -330,10 +389,10 @@ class Detector():
       frame_rgb = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2RGB)
 
       temp = sensor.get_obj_temp()
-      if type(temp) == 'NoneType':
-        print("[DEBUG] temp from sensor is None")
-      # faces detection
-      elif GPIO.input(sensor_IR ) !=1:
+      print(" temp =",temp , ' =',type(temp))
+    
+      
+      if GPIO.input(sensor_IR ) !=1:
         print(GPIO.input(sensor_IR ))
 
         objs = detect_face.predict(interpreter_face, frame_rgb, self.threshold_face)
@@ -349,34 +408,48 @@ class Detector():
           t1 = time.clock()
         
           self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
-          if len(y_mask_pred) > 0:
-            cv2.imwrite("temp.png", frame)
-            response = self.sendApi("temp.png" , True , temp)
-
-            while True:
-              if(str(response) == "OK"):
-                print("send api complete")
-                break
-              else:
-                response = self.sendApi("temp.png" , True , temp)
+      #else:
+      #    check=0
+        
+          '''
+          if temp is not None:
+             person_temp = "{0:0.1f}{1}".format(temp,units)
+             if len(y_mask_pred) != 0:
+               y_pred = y_mask_pred[i]
+               label = self.mask_labels[y_pred > self.threshold_mask]
+               print(" label = " ,label, type(label))
+               if label == self.mask_labels[0]:
+                  response = self.sendApi1("temp.png"  , temp)
+               else:
+                  response = self.sendApi2("temp.png"  , temp)
+#          if len(y_mask_pred) > 0:
+#            #cv2.imwrite("temp.png", frame)
+#            print("111")
+#            check+=1
+#            if(check==1 and temp is not None):
+#                print("!!! onece")
+#                response = self.sendApi1("temp.png"  , temps)
+#
+#                while True:
+#                  if(str(response) == "OK"):
+#                    print("send api complete")
+#                    break
+#                  else:
+#                    response = self.sendApi("temp.png" , temps)
+#                    print("222")
                         
-                  
-          else:
-            cv2.imwrite("temp.png", frame)
-            response = self.sendApi("temp.png" , False , temp)
-            while True:
-              if(str(response) == "OK"):
-                print("send api complete")
-                break
-              else:
-                response = self.sendApi("temp.png" , False , temp)
+              '''    
+          
       # else:
       #   cv2.imwrite("temp.png", frame)
       #   self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR)))
               
-        
+      #else:
+      #    check=0
+      #    print("                  Hand Out")
 
       cv2.imshow('Camera', frame)
+      
       #save png to upload server 
       
 
@@ -417,6 +490,7 @@ class Detector_Thread(Thread, Detector):
     # start loop
     while(True):
       # get opencv data
+      global enable
       ret, frame = camera.read()
 
       t0 = time.clock()
