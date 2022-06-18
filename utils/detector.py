@@ -114,11 +114,12 @@ servo = Servo(25)
 
 GPIO.setmode(GPIO.BCM) 
 GPIO.setup(sensor_IR ,GPIO.IN)
-led_green=18
-led_red=19
+led_green= 14
+led_red=15
 GPIO.setup(led_green ,GPIO.OUT)
 GPIO.setup(led_red ,GPIO.OUT)
-
+GPIO.output(led_red,GPIO.LOW)
+GPIO.output(led_green,GPIO.LOW)
 
 units = 'c'
 
@@ -134,7 +135,7 @@ address = 0x5a
 sensor = GY906(address,bus,units)
 #add another sensor
 #sensor2 = GY906.GY906(address,bus2,units)
-buzzer = Buzzer(17)
+buzzer = Buzzer(18)
 
 
 
@@ -265,8 +266,12 @@ class Detector():
                 cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
                 cv2.imwrite("temp.png", frame)
                 #cv2.imwrite("temp.png", frame)
-                x=Thread(target=self.thread_function)
-                x.start()
+                if(temp < 37.5):  
+                    x=Thread(target=self.thread_function)
+                    x.start()
+                else:
+                    x=Thread(target=self.thread_function1)
+                    x.start()
                
                 response = self.sendApi1("temp.png"  , temp)
             '''    
