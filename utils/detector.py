@@ -142,6 +142,7 @@ class Detector():
   """Class for live camera detection"""
   def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask ,server_url , token):
     self.is_detect = False
+    self.api_sending = False
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
     # path FaceNet
@@ -237,7 +238,7 @@ class Detector():
                 #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
-                if(not self.is_detect):
+                if(not self.is_detect and not self.api_sending):
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, False))
                     req.start()
@@ -272,7 +273,7 @@ class Detector():
                     x.start()
                
                 
-                if(not self.is_detect):
+                if(not self.is_detect and not self.api_sending):
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, True))
                     req.start()
@@ -289,6 +290,7 @@ class Detector():
                     response = self.sendApi1("temp.png"  , temp)
             '''   
   def sendApi(self, frame , temp, mask ):
+    self.api_sending = True
     image = "temp.png"
     cv2.imwrite(image, frame)
     payload={
@@ -305,7 +307,7 @@ class Detector():
     }
 
     response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
-
+    self.api_sending = False
     return response.text
 
   def start(self):
