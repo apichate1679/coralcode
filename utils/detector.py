@@ -46,7 +46,8 @@ import RPi.GPIO as GPIO
 from gpiozero import Servo
 import smbus2
 #check=0
-
+xc1=0
+xc2=0
 temps=0.0
 enable=False
 class GY906(object):
@@ -240,8 +241,10 @@ class Detector():
                 #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
-               
-                response = self.sendApi2("temp.png"  , temp)
+                global xc2
+                xc2+=1
+                if(xc2==2):
+                    response = self.sendApi2("temp.png"  , temp)
 
               else:
                 if(temp < 37.5):  
@@ -273,7 +276,10 @@ class Detector():
                     x=Thread(target=self.thread_function1)
                     x.start()
                
-                response = self.sendApi1("temp.png"  , temp)
+                global xc1
+                xc1+=1
+                if(xc1==2):
+                    response = self.sendApi1("temp.png"  , temp)
             '''    
             if GPIO.input(sensor_IR ) !=1 :
                 print("!!!!")
@@ -374,9 +380,11 @@ class Detector():
 
       #global check
       ret, frame = camera.read()
+      now = datetime.now() # convert to string
+      date_time_str = now.strftime("%Y-%m-%d %H:%M")
       cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, 0, 2)
       cv2.putText(frame, "Temp : ", (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, 0, 2)
-      cv2.putText(frame, str(datetime.now().replace(microsecond=0)), (920,60),cv2.FONT_HERSHEY_SIMPLEX, 0.8, (54,0,123), 2)
+      cv2.putText(frame, str(date_time_str), (920,60),cv2.FONT_HERSHEY_SIMPLEX, 0.8, (54,0,123), 2)
       
       cv2.line(frame,(int(1920/6),int(1080/8)),(int((1920/6)+150),int(1080/8)),(0,150,255),5)
       cv2.line(frame,(int(1920/6),int(1080/8)),(int(1920/6),int(1080/8)+150),(0,150,255),5)
@@ -413,8 +421,11 @@ class Detector():
           t1 = time.clock()
         
           self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
-      #else:
-      #    check=0
+      else:
+          global xc1
+          global xc2
+          xc1=0
+          xc2=0
         
           '''
           if temp is not None:
