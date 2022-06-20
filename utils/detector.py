@@ -143,6 +143,9 @@ class Detector():
   def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask ,server_url , token):
     self.is_detect = False
     self.api_sending = False
+    self.mask_labels = ['No Mask', 'Mask']
+    self.last_label = self.mask_labels[0]
+    self.last_temp = 0
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
     # path FaceNet
@@ -160,7 +163,6 @@ class Detector():
     self.frame_bytes = None
     self.camera = camera
     self.threshold_mask = threshold_mask
-    self.mask_labels = ['No Mask', 'Mask']
     self.server_url = server_url
     self.token = token
 
@@ -209,7 +211,58 @@ class Detector():
         bbox = obj.bbox
         # mask detection
         temp = sensor.get_obj_temp()
-        
+
+        if self.is_detect:
+          person_temp = "{0:0.1f}{1}".format(self.last_temp,units)
+          if self.last_label == self.mask_labels[0]:
+            color = (0,0,255) # b g r, red color if mask not detected
+            cv2.putText(frame, self.last_label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+              
+            cv2.line(frame,(int(1920/6),int(1080/8)),(int((1920/6)+150),int(1080/8)),color,5)
+            cv2.line(frame,(int(1920/6),int(1080/8)),(int(1920/6),int(1080/8)+150),color,5)
+
+            cv2.line(frame,(int(1920/6)+450,int(1080/8)),(int(1920/6)+450+150,int(1080/8)),color,5)
+            cv2.line(frame,(int(1920/6)+450+150,int(1080/8)),(int(1920/6)+450+150,int(1080/8)+150),color,5)
+            
+            cv2.line(frame,(int(1920/6),int(1080/8)+450),(int(1920/6)+150,int(1080/8)+450),color,5)
+            cv2.line(frame,(int(1920/6),int(1080/8)+450),(int(1920/6),int(1080/8)+450-150),color,5)
+
+            cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
+            cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
+            cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+            #cv2.imwrite("temp.png", frame)
+            x=Thread(target=self.thread_function1)
+            x.start()
+          else:
+            if(temp < 37.5):  
+              color = (0,255,0) # b g r, red color if mask not detected
+            else:
+              color = (0,0,255)
+            cv2.putText(frame, self.last_label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            cv2.line(frame,(int(1920/6),int(1080/8)),(int((1920/6)+150),int(1080/8)),color,5)
+            cv2.line(frame,(int(1920/6),int(1080/8)),(int(1920/6),int(1080/8)+150),color,5)
+
+            cv2.line(frame,(int(1920/6)+450,int(1080/8)),(int(1920/6)+450+150,int(1080/8)),color,5)
+            cv2.line(frame,(int(1920/6)+450+150,int(1080/8)),(int(1920/6)+450+150,int(1080/8)+150),color,5)
+              
+            cv2.line(frame,(int(1920/6),int(1080/8)+450),(int(1920/6)+150,int(1080/8)+450),color,5)
+            cv2.line(frame,(int(1920/6),int(1080/8)+450),(int(1920/6),int(1080/8)+450-150),color,5)
+
+            cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
+            cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
+            cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
+            if(self.last_temp < 37.5):  
+                x=Thread(target=self.thread_function)
+                x.start()
+            else:
+                x=Thread(target=self.thread_function1)
+                x.start()
+
+
         if temp is not None and not self.is_detect:
             temp += 2.3
             person_temp = "{0:0.1f}{1}".format(temp,units)
@@ -239,6 +292,8 @@ class Detector():
                 x=Thread(target=self.thread_function1)
                 x.start()
                 if(not self.api_sending):
+                    self.last_label = label
+                    self.last_temp = temp
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, False))
                     req.start()
@@ -271,24 +326,15 @@ class Detector():
                 else:
                     x=Thread(target=self.thread_function1)
                     x.start()
-               
-                
+              
                 if(not self.api_sending):
+                    self.last_label = label
+                    self.last_temp = temp
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, True))
                     req.start()
-                    # response = self.sendApi(frame, temp, True)
-            '''    
-            if GPIO.input(sensor_IR ) !=1 :
-                print("!!!!")
-                if label == self.mask_labels[0]:
-                    print("  2222222222")
-                    response = self.sendApi2("temp.png"  , temp)
-                  
-                else:
-                    print("  11111111")
-                    response = self.sendApi1("temp.png"  , temp)
-            '''   
+            
+            
   def sendApi(self, frame , temp, mask ):
     self.api_sending = True
 
