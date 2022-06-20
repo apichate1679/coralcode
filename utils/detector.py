@@ -213,6 +213,7 @@ class Detector():
         temp = sensor.get_obj_temp()
         
         if temp is not None  :
+            temp += 2.3
             person_temp = "{0:0.1f}{1}".format(temp,units)
             if len(y_mask_pred) != 0:
               y_pred = y_mask_pred[i]
