@@ -45,11 +45,8 @@ from time import sleep
 import RPi.GPIO as GPIO
 from gpiozero import Servo
 import smbus2
-#check=0
-xc1=0
-xc2=0
+
 temps=0.0
-enable=False
 class GY906(object):
 
     MLX90614_RAWIR1=0x04
@@ -144,7 +141,7 @@ buzzer = Buzzer(18)
 class Detector():
   """Class for live camera detection"""
   def __init__(self, cpu_face, cpu_mask, models_path, threshold_face, camera, threshold_mask ,server_url , token):
-
+    self.is_detect = False
     self.cpu_face = cpu_face
     self.cpu_mask = cpu_mask
     # path FaceNet
@@ -221,7 +218,6 @@ class Detector():
               print(" label = " ,label, type(label))
               if label == self.mask_labels[0]:
                 color = (0,0,255) # b g r, red color if mask not detected
-                #enable = False
                 cv2.putText(frame, label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
@@ -242,17 +238,15 @@ class Detector():
                 #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
-                global xc2
-                xc2+=1
-                if(xc2==2):
+                if(not self.is_detect):
                     response = self.sendApi("temp.png"  , temp, False)
+                    self.is_detect = True
 
               else:
                 if(temp < 37.5):  
                     color = (0,255,0) # b g r, red color if mask not detected
                 else:
                     color = (0,0,255)
-                #enable = True
                 cv2.putText(frame, label, (650,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Mask Status : ", (400,650),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 cv2.putText(frame, "Temp : "+str(person_temp), (400,690),cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
@@ -277,10 +271,10 @@ class Detector():
                     x=Thread(target=self.thread_function1)
                     x.start()
                
-                global xc1
-                xc1+=1
-                if(xc1==2):
+                
+                if(not self.is_detect):
                     response = self.sendApi("temp.png"  , temp, True)
+                    self.is_detect = True
             '''    
             if GPIO.input(sensor_IR ) !=1 :
                 print("!!!!")
@@ -380,56 +374,10 @@ class Detector():
         
           self.draw_objects(frame, objs, y_mask_pred, (1/(t1-t0)))
       else:
-          global xc1
-          global xc2
-          xc1=0
-          xc2=0
-        
-          '''
-          if temp is not None:
-             person_temp = "{0:0.1f}{1}".format(temp,units)
-             if len(y_mask_pred) != 0:
-               y_pred = y_mask_pred[i]
-               label = self.mask_labels[y_pred > self.threshold_mask]
-               print(" label = " ,label, type(label))
-               if label == self.mask_labels[0]:
-                  response = self.sendApi1("temp.png"  , temp)
-               else:
-                  response = self.sendApi2("temp.png"  , temp)
-#          if len(y_mask_pred) > 0:
-#            #cv2.imwrite("temp.png", frame)
-#            print("111")
-#            check+=1
-#            if(check==1 and temp is not None):
-#                print("!!! onece")
-#                response = self.sendApi1("temp.png"  , temps)
-#
-#                while True:
-#                  if(str(response) == "OK"):
-#                    print("send api complete")
-#                    break
-#                  else:
-#                    response = self.sendApi("temp.png" , temps)
-#                    print("222")
-                        
-              '''    
-          
-      # else:
-      #   cv2.imwrite("temp.png", frame)
-      #   self.sendApi("temp.png" , False , str(GPIO.input(sensor_IR)))
-              
-      #else:
-      #    check=0
-      #    print("                  Hand Out")
-
+          self.is_detect = False
       cv2.imshow('Camera', frame)
       
       #save png to upload server 
-      
-
-
-
-
       if cv2.waitKey(1) & 0xFF == ord('q'):
         # When everything done, release the capture
         camera.release()
@@ -464,7 +412,6 @@ class Detector_Thread(Thread, Detector):
     # start loop
     while(True):
       # get opencv data
-      global enable
       ret, frame = camera.read()
 
       t0 = time.clock()
