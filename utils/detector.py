@@ -245,7 +245,7 @@ class Detector():
                 global xc2
                 xc2+=1
                 if(xc2==2):
-                    response = self.sendApi2("temp.png"  , temp)
+                    response = self.sendApi("temp.png"  , temp, False)
 
               else:
                 if(temp < 37.5):  
@@ -280,7 +280,7 @@ class Detector():
                 global xc1
                 xc1+=1
                 if(xc1==2):
-                    response = self.sendApi1("temp.png"  , temp)
+                    response = self.sendApi("temp.png"  , temp, True)
             '''    
             if GPIO.input(sensor_IR ) !=1 :
                 print("!!!!")
@@ -292,32 +292,11 @@ class Detector():
                     print("  11111111")
                     response = self.sendApi1("temp.png"  , temp)
             '''   
-                #cv2.rectangle(frame, (int(bbox[0] - 2), int(bbox[1] - 45)), (int(bbox[2] + 2), int(bbox[1])), color, -1)
-          #cv2.putText(frame,
-           #       '{} {:.1%}'.format(label, y_pred),
-            #      (int(bbox.xmin + 5), int(bbox.ymin - 10)),
-             #     cv2.FONT_HERSHEY_SIMPLEX,
-              #    2.5 * ((bbox.xmax - bbox.xmin)/frame.shape[0]),
-               #   (255,255,255),
-                #  2,
-                 # cv2.LINE_AA)
-          
-        
-        #cv2.rectangle(frame, 
-         #           (int(bbox.xmin), int(bbox.ymin)), 
-          #          (int(bbox.xmax), int(bbox.ymax)),
-           #        color, 
-            #       3)
-
-    #cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-    #cv2.imwrite("temp.png", frame)
-  #def sendApi(self , image ,status_mask , temp):
-  def sendApi1(self , image , temp ):
+  def sendApi(self , image , temp, mask ):
    
     payload={
           'temp': "{:.2f}".format(temp),
-          'mask': "true" 
-        
+          'mask': "true" if mask else "false"
     }
  
         
@@ -331,30 +310,8 @@ class Detector():
 
     response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
 
-    # print(response.text)
     return response.text
 
-  def sendApi2(self , image , temp ):
-   
-    payload={
-          'temp': "{:.2f}".format(temp),
-          'mask': "false" 
-        
-    }
- 
-        
-    print("[DEBUG] send api ", payload["temp"], payload["mask"])
-    files=[
-      ('image',(str(image),open(str(image),'rb'),'image/png'))
-    ]
-    headers = {
-      'token': str(self.token)
-    }
-
-    response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
-
-    # print(response.text)
-    return response.text
   def start(self):
     """Main loop function."""
     # initialize coral accelerator
