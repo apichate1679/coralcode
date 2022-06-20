@@ -210,7 +210,7 @@ class Detector():
         # mask detection
         temp = sensor.get_obj_temp()
         
-        if temp is not None  :
+        if temp is not None and not self.is_detect:
             temp += 2.3
             person_temp = "{0:0.1f}{1}".format(temp,units)
             if len(y_mask_pred) != 0:
@@ -238,7 +238,7 @@ class Detector():
                 #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
-                if(not self.is_detect and not self.api_sending):
+                if(not self.api_sending):
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, False))
                     req.start()
@@ -273,7 +273,7 @@ class Detector():
                     x.start()
                
                 
-                if(not self.is_detect and not self.api_sending):
+                if(not self.api_sending):
                     self.is_detect = True
                     req=Thread(target=self.sendApi, args = (frame, temp, True))
                     req.start()
