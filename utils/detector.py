@@ -236,7 +236,7 @@ class Detector():
             x=Thread(target=self.thread_function1)
             x.start()
           else:
-            if(temp < 37.5):  
+            if(self.last_temp < 37.5):  
               color = (0,255,0) # b g r, red color if mask not detected
             else:
               color = (0,0,255)
