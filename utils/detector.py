@@ -234,11 +234,11 @@ class Detector():
                 cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
                 cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-                cv2.imwrite("temp.png", frame)
                 #cv2.imwrite("temp.png", frame)
                 x=Thread(target=self.thread_function1)
                 x.start()
                 if(not self.is_detect):
+                    cv2.imwrite("temp.png", frame)
                     response = self.sendApi("temp.png"  , temp, False)
                     self.is_detect = True
 
@@ -262,8 +262,6 @@ class Detector():
                 cv2.line(frame,(int(1920/6)+450,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450),color,5)
                 cv2.line(frame,(int(1920/6)+450+150,int(1080/8)+450),(int(1920/6)+450+150,int(1080/8)+450-150),color,5)
                 cv2.putText(frame, 'FPS:{:.4}'.format(fps), (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 1, cv2.LINE_AA)
-                cv2.imwrite("temp.png", frame)
-                #cv2.imwrite("temp.png", frame)
                 if(temp < 37.5):  
                     x=Thread(target=self.thread_function)
                     x.start()
@@ -273,6 +271,7 @@ class Detector():
                
                 
                 if(not self.is_detect):
+                    cv2.imwrite("temp.png", frame)
                     response = self.sendApi("temp.png"  , temp, True)
                     self.is_detect = True
             '''    
