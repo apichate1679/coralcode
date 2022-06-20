@@ -238,8 +238,7 @@ class Detector():
                 x=Thread(target=self.thread_function1)
                 x.start()
                 if(not self.is_detect):
-                    cv2.imwrite("temp.png", frame)
-                    response = self.sendApi("temp.png"  , temp, False)
+                    response = self.sendApi(frame, temp, False)
                     self.is_detect = True
 
               else:
@@ -271,8 +270,7 @@ class Detector():
                
                 
                 if(not self.is_detect):
-                    cv2.imwrite("temp.png", frame)
-                    response = self.sendApi("temp.png"  , temp, True)
+                    response = self.sendApi(frame, temp, True)
                     self.is_detect = True
             '''    
             if GPIO.input(sensor_IR ) !=1 :
@@ -285,14 +283,14 @@ class Detector():
                     print("  11111111")
                     response = self.sendApi1("temp.png"  , temp)
             '''   
-  def sendApi(self , image , temp, mask ):
-   
+  def sendApi(self, frame , temp, mask ):
+    image = "temp.png"
+    cv2.imwrite(image, frame)
     payload={
-          'temp': "{:.2f}".format(temp),
-          'mask': "true" if mask else "false"
+      'temp': "{:.2f}".format(temp),
+      'mask': "true" if mask else "false"
     }
  
-        
     print("[DEBUG] send api ", payload["temp"], payload["mask"])
     files=[
       ('image',(str(image),open(str(image),'rb'),'image/png'))
