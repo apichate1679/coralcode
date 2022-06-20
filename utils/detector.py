@@ -238,8 +238,11 @@ class Detector():
                 x=Thread(target=self.thread_function1)
                 x.start()
                 if(not self.is_detect):
-                    response = self.sendApi(frame, temp, False)
                     self.is_detect = True
+                    req=Thread(target=self.sendApi, args = (frame, temp, False))
+                    req.start()
+                    # response = self.sendApi(frame, temp, False)
+                    # self.is_detect = True
 
               else:
                 if(temp < 37.5):  
@@ -270,8 +273,10 @@ class Detector():
                
                 
                 if(not self.is_detect):
-                    response = self.sendApi(frame, temp, True)
                     self.is_detect = True
+                    req=Thread(target=self.sendApi, args = (frame, temp, True))
+                    req.start()
+                    # response = self.sendApi(frame, temp, True)
             '''    
             if GPIO.input(sensor_IR ) !=1 :
                 print("!!!!")
