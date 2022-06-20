@@ -291,24 +291,24 @@ class Detector():
             '''   
   def sendApi(self, frame , temp, mask ):
     self.api_sending = True
-    
-    image = "temp.png"
-    cv2.imwrite(image, frame)
-    payload={
-      'temp': "{:.2f}".format(temp),
-      'mask': "true" if mask else "false"
-    }
- 
-    print("[DEBUG] send api ", payload["temp"], payload["mask"])
-
-    files=[
-      ('image',(str(image),open(str(image),'rb'),'image/png'))
-    ]
-    headers = {
-      'token': str(self.token)
-    }
 
     try:
+      image = "temp.png"
+      cv2.imwrite(image, frame)
+      payload={
+        'temp': "{:.2f}".format(temp),
+        'mask': "true" if mask else "false"
+      }
+  
+      print("[DEBUG] send api ", payload["temp"], payload["mask"])
+
+      files=[
+        ('image',(str(image),open(str(image),'rb'),'image/png'))
+      ]
+      headers = {
+        'token': str(self.token)
+      }
+      
       response = requests.request("POST", str(self.server_url), headers=headers, data=payload, files=files)
     except:
       print("[DEBUG] send api fail")
